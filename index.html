@@ -42,6 +42,7 @@ button{cursor:pointer}
 .stat.main .v{font-size:30px}
 
 .grid{display:grid;grid-template-columns:350px 1fr;gap:16px;align-items:start}
+.grid.solo{grid-template-columns:minmax(0,520px);justify-content:center}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px}
 .steps{display:flex;gap:6px;margin:10px 0 4px}
 .steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
@@ -190,7 +191,7 @@ dialog img.big{max-width:100%;max-height:78vh;display:block;margin:0 auto}
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="listPanel" hidden>
       <div class="tools">
         <input id="q" type="search" placeholder="Cari nama atau catatan" aria-label="Cari">
         <select id="fStatus" aria-label="Filter status">
@@ -231,7 +232,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzd0Ul0-BlSckAyvdNfhbKK
 const $ = id => document.getElementById(id);
 const cfgUrl = () => API_URL || localStorage.getItem('nota_url') || '';
 const cfgToken = () => localStorage.getItem('nota_token') || '';
-let rows = [], isAdmin = false, fotoData = null, sending = false, person = null;
+let rows = [], summary = { total: 0, open: 0, paid: 0, paidRp: 0 }, isAdmin = false, fotoData = null, sending = false, person = null;
 
 const rp = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -274,16 +275,17 @@ async function load() {
     const res = await fetch(url + '?token=' + encodeURIComponent(cfgToken()));
     const j = await res.json();
     if (!j.ok) throw new Error(j.error);
-    rows = j.data; isAdmin = !!j.admin; render();
+    rows = j.data; summary = j.summary || summary; isAdmin = !!j.admin; render();
   } catch (e) { toast('Gagal memuat: ' + e.message); }
 }
 
 function render() {
-  const open = rows.filter(r => !paid(r)), done = rows.filter(paid);
-  $('sTotal').textContent = rp(open.reduce((a, r) => a + r.jumlah, 0));
-  $('sOpen').textContent = open.length;
-  $('sPaid').textContent = done.length;
-  $('sPaidRp').textContent = rp(done.reduce((a, r) => a + r.jumlah, 0));
+  $('sTotal').textContent = rp(summary.total);
+  $('sOpen').textContent = summary.open;
+  $('sPaid').textContent = summary.paid;
+  $('sPaidRp').textContent = rp(summary.paidRp);
+  $('listPanel').hidden = !isAdmin;
+  document.querySelector('.grid').classList.toggle('solo', !isAdmin);
   document.querySelectorAll('.adm').forEach(el => el.hidden = !isAdmin);
 
   const q = $('q').value.trim().toLowerCase(), f = $('fStatus').value;
