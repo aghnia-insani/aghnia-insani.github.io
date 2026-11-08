@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pengajuan Nota Hutang</title>
+<style>
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#14202b; --muted:#5f6f7d; --line:#d5dce2;
+  --accent:#0f6b6b; --accent-ink:#ffffff; --late:#b3261e; --ok:#2f7d3b; --warn:#9a6700;
+  --ok-bg:#e6f3e8; --warn-bg:#fff3d6; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f161c; --panel:#18222b; --ink:#e6edf2; --muted:#93a4b3; --line:#2b3947;
+    --accent:#3fb5b0; --accent-ink:#06201f; --late:#ff8a80; --ok:#7fd18b; --warn:#f0c15a;
+    --ok-bg:#1d3322; --warn-bg:#3a3018; color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+h2{font-size:16px;margin:0}
+.sub{color:var(--muted);font-size:13px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:9px 16px;font-weight:600}
+.btn:disabled{opacity:.55;cursor:wait}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn.danger{background:transparent;color:var(--late);border:1px solid var(--line)}
+
+.stats{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.stat .l{font-size:13px;color:var(--muted)}
+.stat .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+.stat.main{border-left:4px solid var(--accent)}
+.stat.main .v{font-size:30px}
+
+.grid{display:grid;grid-template-columns:350px 1fr;gap:16px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px}
+.steps{display:flex;gap:6px;margin:10px 0 4px}
+.steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.steps i.on{background:var(--accent)}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+input[type=checkbox]{width:auto;margin-top:3px}
+textarea{resize:vertical;min-height:60px}
+.hint{font-size:12px;color:var(--muted);margin-top:3px}
+.consent{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--muted);margin-top:14px}
+.consent span{margin:0}
+.drop{border:1.5px dashed var(--line);border-radius:8px;padding:22px 14px;text-align:center;color:var(--muted);cursor:pointer;margin-top:4px}
+.drop.has{border-style:solid;padding:6px}
+.drop img{max-width:100%;max-height:200px;border-radius:4px;display:block;margin:0 auto}
+.summary{background:var(--bg);border-radius:6px;padding:10px 12px;font-size:13px;margin-top:10px}
+.summary b{font-variant-numeric:tabular-nums}
+.form-actions{margin-top:16px;display:flex;gap:8px}
+.form-actions .btn.main{flex:1}
+
+.prog{margin-top:14px;display:none}
+.prog .top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.bar{height:12px;border-radius:6px;background:var(--line);overflow:hidden}
+.bar>div{height:100%;width:0;background:var(--accent);transition:width .15s linear}
+.bar.busy>div{background:repeating-linear-gradient(45deg,var(--accent) 0 10px,color-mix(in srgb,var(--accent) 70%,var(--panel)) 10px 20px);background-size:28px 28px;animation:slide .8s linear infinite}
+@keyframes slide{to{background-position:28px 0}}
+
+.done{text-align:center;padding:10px 4px}
+.done svg{width:56px;height:56px;color:var(--ok)}
+.done h2{font-size:19px;margin:8px 0 4px}
+.done .ref{display:inline-block;background:var(--ok-bg);color:var(--ok);border-radius:99px;padding:2px 12px;font-weight:600;font-size:13px;margin-bottom:12px}
+.doa{background:var(--bg);border-left:4px solid var(--accent);border-radius:6px;padding:12px 14px;text-align:left;font-size:14px;margin:12px 0 16px}
+
+.tools{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.tools input{flex:1;min-width:150px}
+.tools select{width:auto}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:13px;color:var(--muted);font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.who{font-weight:600}
+.small{font-size:12px;color:var(--muted)}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+.badge.lunas{background:var(--ok-bg);color:var(--ok)}
+.badge.belum{background:var(--warn-bg);color:var(--warn)}
+.thumb{width:40px;height:40px;object-fit:cover;border-radius:4px;border:1px solid var(--line);cursor:pointer;display:block;background:var(--bg)}
+.acts{display:flex;gap:6px;justify-content:flex-end}
+.empty{padding:36px 12px;text-align:center;color:var(--muted)}
+
+dialog{border:0;border-radius:10px;padding:0;max-width:min(92vw,720px);background:var(--panel);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog .inner{padding:16px}
+dialog img.big{max-width:100%;max-height:78vh;display:block;margin:0 auto}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;z-index:50}
+.toast.show{opacity:1}
+.banner{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:12px 14px;margin-bottom:16px;display:none}
+[hidden]{display:none!important}
+
+@media (max-width:860px){
+  .stats{grid-template-columns:1fr 1fr}
+  .stat.main{grid-column:1/-1}
+  .grid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){.toast,.bar>div{transition:none}.bar.busy>div{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Pengajuan Nota Hutang</h1>
+      <div class="sub">Kirim nota Anda agar dapat dibantu dilunasi oleh para donatur</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn ghost sm" id="btnRefresh">Muat ulang</button>
+      <button class="btn ghost sm" id="btnSettings">Pengaturan</button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner">Alamat Apps Script belum diisi. Buka <b>Pengaturan</b> lalu tempel URL Web App Anda.</div>
+
+  <section class="stats">
+    <div class="stat main"><div class="l">Total menunggu donatur</div><div class="v" id="sTotal">Rp 0</div></div>
+    <div class="stat"><div class="l">Pengajuan menunggu</div><div class="v" id="sOpen">0</div></div>
+    <div class="stat"><div class="l">Sudah dilunasi</div><div class="v" id="sPaid">0</div></div>
+    <div class="stat"><div class="l">Total dilunasi</div><div class="v" id="sPaidRp">Rp 0</div></div>
+  </section>
+
+  <div class="grid">
+    <section class="panel" id="formPanel">
+      <!-- LANGKAH 1: DATA DIRI -->
+      <div id="step1">
+        <h2>Data pemohon</h2>
+        <div class="steps"><i class="on"></i><i></i></div>
+        <div class="sub">Langkah 1 dari 2</div>
+        <form id="f1" autocomplete="off">
+          <label for="fNama">Nama lengkap (sesuai KTP)</label>
+          <input id="fNama" required minlength="3" maxlength="100">
+          <label for="fAlamat">Alamat</label>
+          <textarea id="fAlamat" required minlength="5" maxlength="300"></textarea>
+          <label for="fNik">No. NIK KTP</label>
+          <input id="fNik" required inputmode="numeric" maxlength="16" placeholder="16 digit">
+          <div class="hint"><span id="nikCount">0</span>/16 digit</div>
+          <label for="fJumlah">Jumlah hutang yang ingin dilunasi (Rp)</label>
+          <input id="fJumlah" required inputmode="numeric">
+          <label for="fCatatan">Catatan</label>
+          <textarea id="fCatatan" maxlength="300"></textarea>
+          <label class="consent"><input type="checkbox" id="fSetuju" required>
+            <span>Saya menyatakan data ini benar dan menyetujui data saya dipakai untuk verifikasi pengajuan. NIK hanya tampil sebagian di daftar publik.</span></label>
+          <div class="form-actions"><button class="btn main" type="submit">Lanjut upload nota</button></div>
+        </form>
+      </div>
+
+      <!-- LANGKAH 2: UPLOAD NOTA -->
+      <div id="step2" hidden>
+        <h2>Upload nota</h2>
+        <div class="steps"><i class="on"></i><i class="on"></i></div>
+        <div class="sub">Langkah 2 dari 2</div>
+        <div class="summary" id="summary"></div>
+        <label>Foto nota / bill</label>
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Pilih foto nota">Ketuk untuk pilih atau ambil foto</div>
+        <input id="fFoto" type="file" accept="image/*" hidden>
+        <div class="prog" id="prog" aria-live="polite">
+          <div class="top"><span id="progLabel">Mengunggah nota...</span><b id="progPct">0%</b></div>
+          <div class="bar" id="bar"><div id="barFill"></div></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn ghost" id="btnBack" type="button">Kembali</button>
+          <button class="btn main" id="btnSend" type="button">Kirim bill</button>
+        </div>
+      </div>
+
+      <!-- SUKSES -->
+      <div id="stepDone" hidden>
+        <div class="done" role="status">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>
+          <h2>Bill berhasil terkirim</h2>
+          <div class="ref">No. pengajuan <span id="refId"></span></div>
+          <div class="doa">
+            <b>Mari berdoa untuk para donatur.</b><br>
+            Mohon panjatkan doa bagi para donatur yang akan melunasi hutang Anda. Semoga Allah membalas kebaikan mereka dengan berlipat ganda, melapangkan rezeki, dan menjaga keluarga mereka. Aamiin.
+          </div>
+          <button class="btn" id="btnNew" type="button">Kirim pengajuan lain</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="tools">
+        <input id="q" type="search" placeholder="Cari nama atau catatan" aria-label="Cari">
+        <select id="fStatus" aria-label="Filter status">
+          <option value="all">Semua</option>
+          <option value="open">Menunggu donatur</option>
+          <option value="paid">Lunas</option>
+        </select>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Nota</th><th>Pemohon</th><th class="num">Jumlah</th><th>Status</th><th class="adm" hidden></th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="empty" hidden></div>
+    </section>
+  </div>
+</div>
+
+<dialog id="dlgImg"><div class="inner"><img class="big" id="bigImg" alt="Foto nota"><div style="text-align:right;margin-top:10px"><a id="bigLink" target="_blank" rel="noopener" class="small">Buka di Drive</a> &nbsp; <button class="btn ghost sm" id="closeImg">Tutup</button></div></div></dialog>
+
+<dialog id="dlgSet"><div class="inner" style="width:min(88vw,460px)">
+  <h2>Pengaturan</h2>
+  <label for="sUrl">URL Web App Apps Script</label>
+  <input id="sUrl" placeholder="https://script.google.com/macros/s/.../exec">
+  <label for="sToken">Token admin (kosongkan jika bukan admin)</label>
+  <input id="sToken" type="password">
+  <div class="form-actions"><button class="btn main" id="saveSet">Simpan</button><button class="btn ghost" id="closeSet">Batal</button></div>
+</div></dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+// Isi URL di sini agar permanen untuk semua pengunjung, atau isi lewat tombol Pengaturan.
+// Jangan menulis token admin di file ini: file ini publik di GitHub.
+const API_URL = '';
+
+const $ = id => document.getElementById(id);
+const cfgUrl = () => API_URL || localStorage.getItem('nota_url') || '';
+const cfgToken = () => localStorage.getItem('nota_token') || '';
+let rows = [], isAdmin = false, fotoData = null, sending = false, person = null;
+
+const rp = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const thumb = r => 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(r.fotoId) + '&sz=w800';
+const paid = r => r.status === 'Lunas';
+
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+function show(step) {
+  ['step1', 'step2', 'stepDone'].forEach(id => $(id).hidden = id !== step);
+}
+
+// Kirim dengan XHR agar progres upload nyata (persen) bisa ditampilkan
+function post(payload, onProgress) {
+  return new Promise((resolve, reject) => {
+    const url = cfgUrl();
+    if (!url) { $('banner').style.display = 'block'; return reject(new Error('URL Apps Script belum diisi di Pengaturan')); }
+    const x = new XMLHttpRequest();
+    x.open('POST', url);
+    if (onProgress) {
+      x.upload.onprogress = e => { if (e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100)); };
+      x.upload.onload = () => onProgress(100);
+    }
+    x.onload = () => {
+      try { const j = JSON.parse(x.responseText); j.ok ? resolve(j) : reject(new Error(j.error || 'Gagal')); }
+      catch { reject(new Error('Respons server tidak valid')); }
+    };
+    x.onerror = () => reject(new Error('Koneksi gagal, periksa internet Anda'));
+    x.send(JSON.stringify(payload));
+  });
+}
+
+async function load() {
+  const url = cfgUrl();
+  $('banner').style.display = url ? 'none' : 'block';
+  if (!url) { render(); return; }
+  try {
+    const res = await fetch(url + '?token=' + encodeURIComponent(cfgToken()));
+    const j = await res.json();
+    if (!j.ok) throw new Error(j.error);
+    rows = j.data; isAdmin = !!j.admin; render();
+  } catch (e) { toast('Gagal memuat: ' + e.message); }
+}
+
+function render() {
+  const open = rows.filter(r => !paid(r)), done = rows.filter(paid);
+  $('sTotal').textContent = rp(open.reduce((a, r) => a + r.jumlah, 0));
+  $('sOpen').textContent = open.length;
+  $('sPaid').textContent = done.length;
+  $('sPaidRp').textContent = rp(done.reduce((a, r) => a + r.jumlah, 0));
+  document.querySelectorAll('.adm').forEach(el => el.hidden = !isAdmin);
+
+  const q = $('q').value.trim().toLowerCase(), f = $('fStatus').value;
+  const list = rows.filter(r => (f === 'all' || (f === 'paid') === paid(r)) &&
+    (!q || [r.nama, r.catatan].join(' ').toLowerCase().includes(q)));
+  $('empty').hidden = list.length > 0;
+  $('empty').textContent = rows.length ? 'Tidak ada pengajuan yang cocok.' : 'Belum ada pengajuan. Isi data di samping untuk mengirim yang pertama.';
+
+  $('tbody').innerHTML = list.map(r => `<tr>
+    <td>${r.fotoId ? `<img class="thumb" src="${thumb(r)}" data-id="${esc(r.id)}" alt="Foto nota ${esc(r.nama)}" loading="lazy">` : '<div class="thumb"></div>'}</td>
+    <td><div class="who">${esc(r.nama)}</div>
+      <div class="small">NIK ${esc(r.nik)} &middot; ${esc(r.dikirim)}${isAdmin && r.alamat ? '<br>' + esc(r.alamat) : ''}${r.catatan ? '<br>' + esc(r.catatan) : ''}</div></td>
+    <td class="num">${rp(r.jumlah)}</td>
+    <td>${paid(r) ? '<span class="badge lunas">Lunas</span>' : '<span class="badge belum">Menunggu donatur</span>'}</td>
+    ${isAdmin ? `<td><div class="acts">
+      <button class="btn ghost sm" data-act="toggle" data-id="${esc(r.id)}">${paid(r) ? 'Buka lagi' : 'Tandai lunas'}</button>
+      <button class="btn danger sm" data-act="del" data-id="${esc(r.id)}">Hapus</button></div></td>` : ''}
+  </tr>`).join('');
+}
+
+// Kompres foto di browser agar upload cepat
+function compress(file, max = 1400, quality = 0.78) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onerror = reject;
+    fr.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        const url = c.toDataURL('image/jpeg', quality);
+        resolve({ preview: url, base64: url.split(',')[1] });
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+function setProgress(p, label, busy) {
+  $('prog').style.display = 'block';
+  $('barFill').style.width = p + '%';
+  $('progPct').textContent = p + '%';
+  $('progLabel').textContent = label;
+  $('bar').classList.toggle('busy', !!busy);
+}
+function resetAll() {
+  $('f1').reset(); $('nikCount').textContent = '0'; fotoData = null; person = null;
+  $('drop').className = 'drop'; $('drop').textContent = 'Ketuk untuk pilih atau ambil foto';
+  $('prog').style.display = 'none'; setProgress(0, 'Mengunggah nota...'); $('prog').style.display = 'none';
+  $('btnSend').disabled = false; $('btnBack').disabled = false; $('btnSend').textContent = 'Kirim bill';
+  show('step1');
+}
+
+$('fNik').oninput = e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 16); $('nikCount').textContent = e.target.value.length; };
+$('fJumlah').oninput = e => { const d = e.target.value.replace(/\D/g, ''); e.target.value = d ? Number(d).toLocaleString('id-ID') : ''; };
+
+$('f1').onsubmit = e => {
+  e.preventDefault();
+  const nik = $('fNik').value;
+  if (nik.length !== 16) { toast('NIK harus 16 digit'); $('fNik').focus(); return; }
+  const jumlah = Number($('fJumlah').value.replace(/\D/g, ''));
+  if (!(jumlah > 0)) { toast('Isi jumlah hutang yang ingin dilunasi'); $('fJumlah').focus(); return; }
+  person = { nama: $('fNama').value.trim(), alamat: $('fAlamat').value.trim(), nik, jumlah, catatan: $('fCatatan').value.trim() };
+  $('summary').innerHTML = `<b>${esc(person.nama)}</b><br>NIK ${esc('************' + nik.slice(-4))} &middot; Dilunasi: <b>${rp(jumlah)}</b>`;
+  show('step2');
+};
+
+$('drop').onclick = () => { if (!sending) $('fFoto').click(); };
+$('drop').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('drop').click(); } };
+$('fFoto').onchange = async e => {
+  const file = e.target.files[0]; if (!file) return;
+  try {
+    fotoData = await compress(file);
+    $('drop').className = 'drop has';
+    $('drop').innerHTML = `<img src="${fotoData.preview}" alt="Pratinjau foto nota">`;
+  } catch { toast('Foto tidak bisa dibaca, coba file lain'); }
+};
+$('btnBack').onclick = () => show('step1');
+
+$('btnSend').onclick = async () => {
+  if (sending) return;
+  if (!fotoData) { toast('Pilih foto nota terlebih dahulu'); return; }
+  sending = true; $('btnSend').disabled = true; $('btnBack').disabled = true; $('btnSend').textContent = 'Mengirim...';
+  setProgress(0, 'Mengunggah nota...');
+  try {
+    const j = await post({ action: 'add', ...person, foto: { base64: fotoData.base64 } }, p => {
+      setProgress(p, p < 100 ? 'Mengunggah nota...' : 'Terunggah, menyimpan ke spreadsheet...', p >= 100);
+    });
+    setProgress(100, 'Selesai', false);
+    $('refId').textContent = j.id;
+    show('stepDone');
+    await load();
+  } catch (err) {
+    toast('Gagal mengirim: ' + err.message);
+    $('prog').style.display = 'none';
+    $('btnSend').disabled = false; $('btnBack').disabled = false; $('btnSend').textContent = 'Coba kirim lagi';
+  }
+  sending = false;
+};
+$('btnNew').onclick = resetAll;
+
+$('tbody').onclick = async e => {
+  const img = e.target.closest('img.thumb');
+  if (img) {
+    const r = rows.find(x => x.id === img.dataset.id); if (!r) return;
+    $('bigImg').src = thumb(r).replace('w800', 'w1600'); $('bigLink').href = r.fotoUrl; $('dlgImg').showModal(); return;
+  }
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const r = rows.find(x => x.id === b.dataset.id); if (!r) return;
+  try {
+    if (b.dataset.act === 'toggle') {
+      await post({ action: 'status', id: r.id, token: cfgToken(), status: paid(r) ? 'Menunggu Donatur' : 'Lunas' });
+      toast(paid(r) ? 'Dibuka lagi' : 'Ditandai lunas');
+    } else {
+      if (!confirm('Hapus pengajuan ' + r.nama + ' ' + rp(r.jumlah) + '? Foto di Drive ikut dihapus.')) return;
+      await post({ action: 'delete', id: r.id, token: cfgToken() }); toast('Pengajuan dihapus');
+    }
+    await load();
+  } catch (err) { toast('Gagal: ' + err.message); }
+};
+
+$('q').oninput = render; $('fStatus').onchange = render;
+$('btnRefresh').onclick = load;
+$('closeImg').onclick = () => $('dlgImg').close();
+$('btnSettings').onclick = () => { $('sUrl').value = localStorage.getItem('nota_url') || ''; $('sToken').value = cfgToken(); $('dlgSet').showModal(); };
+$('closeSet').onclick = () => $('dlgSet').close();
+$('saveSet').onclick = () => {
+  localStorage.setItem('nota_url', $('sUrl').value.trim());
+  localStorage.setItem('nota_token', $('sToken').value);
+  $('dlgSet').close(); load();
+};
+
+resetAll(); load();
+</script>
+</body>
+</html>
