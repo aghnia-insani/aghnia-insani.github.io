@@ -114,8 +114,8 @@ dialog img.big{max-width:100%;max-height:78vh;display:block;margin:0 auto}
 <div class="wrap">
   <header>
     <div>
-      <h1>Pengajuan Nota Hutang</h1>
-      <div class="sub">Kirim nota Anda agar dapat dibantu dilunasi oleh para donatur</div>
+      <h1>Pengajuan Pelunasan Hutang</h1>
+      <div class="sub">Kirim Pelunasan Anda agar dapat dibantu dilunasi oleh para donatur</div>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn ghost sm" id="btnRefresh">Muat ulang</button>
@@ -153,21 +153,21 @@ dialog img.big{max-width:100%;max-height:78vh;display:block;margin:0 auto}
           <textarea id="fCatatan" maxlength="300"></textarea>
           <label class="consent"><input type="checkbox" id="fSetuju" required>
             <span>Saya menyatakan data ini benar dan menyetujui data saya dipakai untuk verifikasi pengajuan. NIK hanya tampil sebagian di daftar publik.</span></label>
-          <div class="form-actions"><button class="btn main" type="submit">Lanjut upload nota</button></div>
+          <div class="form-actions"><button class="btn main" type="submit">Lanjut upload Pelunasan</button></div>
         </form>
       </div>
 
-      <!-- LANGKAH 2: UPLOAD NOTA -->
+      <!-- LANGKAH 2: UPLOAD Pelunasan -->
       <div id="step2" hidden>
-        <h2>Upload nota</h2>
+        <h2>Upload Pelunasan</h2>
         <div class="steps"><i class="on"></i><i class="on"></i></div>
         <div class="sub">Langkah 2 dari 2</div>
         <div class="summary" id="summary"></div>
-        <label>Foto nota / bill</label>
-        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Pilih foto nota">Ketuk untuk pilih atau ambil foto</div>
+        <label>Foto Pelunasan / bill</label>
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Pilih foto Pelunasan">Ketuk untuk pilih atau ambil foto</div>
         <input id="fFoto" type="file" accept="image/*" hidden>
         <div class="prog" id="prog" aria-live="polite">
-          <div class="top"><span id="progLabel">Mengunggah nota...</span><b id="progPct">0%</b></div>
+          <div class="top"><span id="progLabel">Mengunggah Pelunasan...</span><b id="progPct">0%</b></div>
           <div class="bar" id="bar"><div id="barFill"></div></div>
         </div>
         <div class="form-actions">
@@ -202,7 +202,7 @@ dialog img.big{max-width:100%;max-height:78vh;display:block;margin:0 auto}
       </div>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Nota</th><th>Pemohon</th><th class="num">Jumlah</th><th>Status</th><th class="adm" hidden></th></tr></thead>
+          <thead><tr><th>Pelunasan</th><th>Pemohon</th><th class="num">Jumlah</th><th>Status</th><th class="adm" hidden></th></tr></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -211,7 +211,7 @@ dialog img.big{max-width:100%;max-height:78vh;display:block;margin:0 auto}
   </div>
 </div>
 
-<dialog id="dlgImg"><div class="inner"><img class="big" id="bigImg" alt="Foto nota"><div style="text-align:right;margin-top:10px"><a id="bigLink" target="_blank" rel="noopener" class="small">Buka di Drive</a> &nbsp; <button class="btn ghost sm" id="closeImg">Tutup</button></div></div></dialog>
+<dialog id="dlgImg"><div class="inner"><img class="big" id="bigImg" alt="Foto Pelunasan"><div style="text-align:right;margin-top:10px"><a id="bigLink" target="_blank" rel="noopener" class="small">Buka di Drive</a> &nbsp; <button class="btn ghost sm" id="closeImg">Tutup</button></div></div></dialog>
 
 <dialog id="dlgSet"><div class="inner" style="width:min(88vw,460px)">
   <h2>Pengaturan</h2>
@@ -230,8 +230,8 @@ dialog img.big{max-width:100%;max-height:78vh;display:block;margin:0 auto}
 const API_URL = 'https://script.google.com/macros/s/AKfycbzd0Ul0-BlSckAyvdNfhbKKUaKtl8jit-OPGzCs8Le7fXQrBLxyWv5tWMYv4Mh5rOHD5Q/exec';
 
 const $ = id => document.getElementById(id);
-const cfgUrl = () => API_URL || localStorage.getItem('nota_url') || '';
-const cfgToken = () => localStorage.getItem('nota_token') || '';
+const cfgUrl = () => API_URL || localStorage.getItem('Pelunasan_url') || '';
+const cfgToken = () => localStorage.getItem('Pelunasan_token') || '';
 let rows = [], summary = { total: 0, open: 0, paid: 0, paidRp: 0 }, isAdmin = false, fotoData = null, sending = false, person = null;
 
 const rp = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
@@ -294,7 +294,7 @@ function render() {
   $('empty').textContent = rows.length ? 'Tidak ada pengajuan yang cocok.' : 'Belum ada pengajuan. Isi data di samping untuk mengirim yang pertama.';
 
   $('tbody').innerHTML = list.map(r => `<tr>
-    <td>${r.fotoId ? `<img class="thumb" src="${thumb(r)}" data-id="${esc(r.id)}" alt="Foto nota ${esc(r.nama)}" loading="lazy">` : '<div class="thumb"></div>'}</td>
+    <td>${r.fotoId ? `<img class="thumb" src="${thumb(r)}" data-id="${esc(r.id)}" alt="Foto Pelunasan ${esc(r.nama)}" loading="lazy">` : '<div class="thumb"></div>'}</td>
     <td><div class="who">${esc(r.nama)}</div>
       <div class="small">NIK ${esc(r.nik)} &middot; ${esc(r.dikirim)}${isAdmin && r.alamat ? '<br>' + esc(r.alamat) : ''}${r.catatan ? '<br>' + esc(r.catatan) : ''}</div></td>
     <td class="num">${rp(r.jumlah)}</td>
@@ -337,7 +337,7 @@ function setProgress(p, label, busy) {
 function resetAll() {
   $('f1').reset(); $('nikCount').textContent = '0'; fotoData = null; person = null;
   $('drop').className = 'drop'; $('drop').textContent = 'Ketuk untuk pilih atau ambil foto';
-  $('prog').style.display = 'none'; setProgress(0, 'Mengunggah nota...'); $('prog').style.display = 'none';
+  $('prog').style.display = 'none'; setProgress(0, 'Mengunggah Pelunasan...'); $('prog').style.display = 'none';
   $('btnSend').disabled = false; $('btnBack').disabled = false; $('btnSend').textContent = 'Kirim bill';
   show('step1');
 }
@@ -363,16 +363,16 @@ $('fFoto').onchange = async e => {
   try {
     fotoData = await compress(file);
     $('drop').className = 'drop has';
-    $('drop').innerHTML = `<img src="${fotoData.preview}" alt="Pratinjau foto nota">`;
+    $('drop').innerHTML = `<img src="${fotoData.preview}" alt="Pratinjau foto Pelunasan">`;
   } catch { toast('Foto tidak bisa dibaca, coba file lain'); }
 };
 $('btnBack').onclick = () => show('step1');
 
 $('btnSend').onclick = async () => {
   if (sending) return;
-  if (!fotoData) { toast('Pilih foto nota terlebih dahulu'); return; }
+  if (!fotoData) { toast('Pilih foto Pelunasan terlebih dahulu'); return; }
   sending = true; $('btnSend').disabled = true; $('btnBack').disabled = true; $('btnSend').textContent = 'Mengirim...';
-  setProgress(0, 'Mengunggah nota...');
+  setProgress(0, 'Mengunggah Pelunasan...');
   try {
     // Kirim foto per potongan; persen = bagian foto yang sudah terkirim
     const b64 = fotoData.base64, SIZE = 60000, n = Math.ceil(b64.length / SIZE);
@@ -380,7 +380,7 @@ $('btnSend').onclick = async () => {
     for (let i = 0; i < n; i++) {
       await postRetry({ action: 'chunk', uploadId, index: i, data: b64.slice(i * SIZE, (i + 1) * SIZE) });
       const p = Math.round((i + 1) / n * 100);
-      setProgress(p, p < 100 ? 'Mengunggah nota...' : 'Terunggah, menyimpan ke spreadsheet...', p >= 100);
+      setProgress(p, p < 100 ? 'Mengunggah Pelunasan...' : 'Terunggah, menyimpan ke spreadsheet...', p >= 100);
     }
     const j = await postRetry({ action: 'add', ...person, uploadId, chunks: n }, 1);
     setProgress(100, 'Selesai', false);
@@ -419,11 +419,11 @@ $('tbody').onclick = async e => {
 $('q').oninput = render; $('fStatus').onchange = render;
 $('btnRefresh').onclick = load;
 $('closeImg').onclick = () => $('dlgImg').close();
-$('btnSettings').onclick = () => { $('sUrl').value = localStorage.getItem('nota_url') || ''; $('sToken').value = cfgToken(); $('dlgSet').showModal(); };
+$('btnSettings').onclick = () => { $('sUrl').value = localStorage.getItem('Pelunasan_url') || ''; $('sToken').value = cfgToken(); $('dlgSet').showModal(); };
 $('closeSet').onclick = () => $('dlgSet').close();
 $('saveSet').onclick = () => {
-  localStorage.setItem('nota_url', $('sUrl').value.trim());
-  localStorage.setItem('nota_token', $('sToken').value);
+  localStorage.setItem('Pelunasan_url', $('sUrl').value.trim());
+  localStorage.setItem('Pelunasan_token', $('sToken').value);
   $('dlgSet').close(); load();
 };
 
